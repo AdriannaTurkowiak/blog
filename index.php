@@ -35,7 +35,7 @@ if ($results === false) {
 <body>
 
     <header>
-        <h1>My blog</h1>
+        <h1>Chemia dla opornych</h1>
     </header>
 
     <main>
