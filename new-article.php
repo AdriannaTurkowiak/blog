@@ -2,34 +2,83 @@
 
 require 'includes/database.php';
 
+$errors = [];
+$title = '';
+$content = '';
+$level = '';
+$published_at = '';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $conn = getDB();
+    $title = $_POST['title'];
+    $content = $_POST['content'];
+    $level = $_POST['level'];
+    $published_at = $_POST['published_at'];
 
-  $sql = "INSERT INTO article (title, content, level, published_at)
-          VALUES (?, ?, ?, ?)";
+    if ($title == '') {
+        $errors[] = 'Title is required';
+    }
+    if ($content == '') {
+        $errors[] = 'Content is required';
+    }
+    if ($level == '') {
+        $errors[] = 'Level is required';
+    }
+    if ($published_at != '') {
+        $date_time = date_create_from_format('Y-m-d H:i:s', $published_at);
 
-  $stmt = mysqli_prepare($conn, $sql);
+        if ($date_time === false) {
+            $errors[] = 'Invalid date and time';
+        } else {
+            $date_errors = date_get_last_errors();
 
-  if ($stmt === false) {
+            if ($date_errors['warning_count'] > 0) {
+                $errors[] = 'Invalid date and time';
+            }
+        }
+    }
 
-      echo mysqli_error($conn);
 
-  } else {
 
-      mysqli_stmt_bind_param($stmt, "ssss", $_POST['title'], $_POST['content'], $_POST['level'], $_POST['published_at']);
+    if (empty($errors)) {
 
-      if (mysqli_stmt_execute($stmt)) {
+        $conn = getDB();
 
-          $id = mysqli_insert_id($conn);
-          echo "Inserted record with ID: $id";
+        $sql = "INSERT INTO article (title, content, level, published_at) VALUES (?, ?, ?, ?)";
 
-      } else {
+        $stmt = mysqli_prepare($conn, $sql);
 
-          echo mysqli_stmt_error($stmt);
+        if ($stmt === false) {
 
-      }
-  }
+            echo mysqli_error($conn);
+
+        } else {
+
+            if ($published_at == '') {
+                $published_at = null;
+            }
+            mysqli_stmt_bind_param($stmt, "ssss", $title, $content, $level, $published_at);
+
+            if (mysqli_stmt_execute($stmt)) {
+
+                $id = mysqli_insert_id($conn);
+
+                if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
+                    $protocol = 'https';
+                } else {
+                    $protocol = 'http';
+                }
+
+                header("Location: $protocol://" . $_SERVER['HTTP_HOST'] . "/article.php?id=$id");
+                exit;
+
+            } else {
+
+                echo mysqli_stmt_error($stmt);
+
+            }
+        }
+    }
 }
 
 ?>
@@ -37,26 +86,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <h2>New article</h2>
 
+<?php if (! empty($errors)) : ?>
+    <ul>
+        <?php foreach ($errors as $error) : ?>
+            <li><?= $error ?></li>
+        <?php endforeach; ?>
+    </ul>
+<?php endif; ?>
+
 <form method="post">
 
     <div>
         <label for="title">Title</label>
-        <input name="title" id="title" placeholder="Article title">
+        <input name="title" id="title" placeholder="Article title" value="<?= htmlspecialchars($title); ?>">
     </div>
 
     <div>
         <label for="content">Content</label>
-        <textarea name="content" rows="4" cols="40" id="content" placeholder="Article content"></textarea>
+        <textarea name="content" rows="4" cols="40" id="content"
+                  placeholder="Article content"><?= htmlspecialchars($content); ?></textarea>
     </div>
 
     <div>
         <label for="level">Level</label>
-        <textarea name="level" id="level" placeholder="Article level"></textarea>
+        <input name="level" id="level" placeholder="SP or LO"value="<?= htmlspecialchars($level); ?>">
     </div>
 
     <div>
         <label for="published_at">Publication date and time</label>
-        <input type="datetime-local" name="published_at" id="published_at">
+        <input type="datetime-local" name="published_at" id="published_at"
+               value="<?= htmlspecialchars($published_at); ?>">
     </div>
 
     <button>Add</button>

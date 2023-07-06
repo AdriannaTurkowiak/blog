@@ -20,6 +20,9 @@ if ($results === false) {
 
 <?php require 'includes/header.php'; ?>
 
+<a href="new-article.php">New article</a>
+
+
         <?php if (empty($articles)): //Aby sprawdzic, czy warunek dziala, wystarczy w $sql dac warunek WHERE id = 0?>
             <p>No articles found.</p>
         <?php else: ?>
@@ -27,8 +30,8 @@ if ($results === false) {
                 <?php foreach ($articles as $article): //Wypisz wszystkie posty?>
                     <li>
                     <article>
-                            <h2><a href="article.php?id=<?= $article['id']; ?>"><?= $article['title']; ?></a></h2>
-                            <p><?= $article['content']; ?></p>
+                            <h2><a href="article.php?id=<?= $article['id']; ?>"><?= htmlspecialchars($article['title']); ?></a></h2>
+                            <p><?= htmlspecialchars($article['content']); ?></p>
                         </article>
                     </li>
                 <?php endforeach; ?>

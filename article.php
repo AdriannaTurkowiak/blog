@@ -31,8 +31,8 @@ else {
             <p>Article not found.</p>
         <?php else: ?>
             <article>
-                <h2><?= $article['title']; ?></h2>
-                <p><?= $article['content']; ?></p>
+                <h2><?= htmlspecialchars($article['title']); ?></h2>
+                <p><?= htmlspecialchars($article['content']); ?></p>
             </article>
                     </li>
 
