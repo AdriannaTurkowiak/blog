@@ -5,72 +5,72 @@
  *
  * @param object $conn Connection to the database
  * @param integer $id the article ID
+ * @param string $columns Optional list of columns for the select, defaults to *
  *
  * @return mixed An associative array containing the article with that ID, or null if not found
  */
-function getArticle($conn, $id)
+function getArticle($conn, $id, $columns = '*')
 {
-  $sql = "SELECT *
-  FROM article
-  WHERE id = ?";
+    $sql = "SELECT $columns
+            FROM article
+            WHERE id = ?";
 
-  $stmt = mysqli_prepare($conn, $sql); //1. Zapytanie do SQL, $stmt to utworzony obiekt
+    $stmt = mysqli_prepare($conn, $sql);
 
-  if ($stmt === false) {
-    echo mysqli_error($conn);
-  }
-  else { 
-    mysqli_stmt_bind_param($stmt, "i", $id); //2. Powiązanie wartości z parametrami zapytania
+    if ($stmt === false) {
 
-    if (mysqli_stmt_execute($stmt)) //3. Jak powiązanie się powiodło, wykonaj zapytanie
-    {
-        $result = mysqli_stmt_get_result($stmt); //4. Pobierz wynik zapytania, domyślnie powstaje tablica z indeksami numerycznymi i słownymi
+        echo mysqli_error($conn);
 
-        return mysqli_fetch_array($result, MYSQLI_ASSOC); //5. Zamień wyniki na tablicę asocjacyjną (z nazwami kolumn, bez numerów); jeśli nie ma ID, zostanie zwrócona wartość NULL
+    } else {
+
+        mysqli_stmt_bind_param($stmt, "i", $id);
+
+        if (mysqli_stmt_execute($stmt)) {
+
+            $result = mysqli_stmt_get_result($stmt);
+
+            return mysqli_fetch_array($result, MYSQLI_ASSOC);
+        }
     }
-  }
 }
+
 
 /**
  * Validate the article properties
  *
  * @param string $title Title, required
  * @param string $content Content, required
- * @param string $content Level, required
  * @param string $published_at Published date and time, yyyy-mm-dd hh:mm:ss if not blank
  *
  * @return array An array of validation error messages
  */
-
-function validateArticle ($title, $content, $level, $published_at) 
+function validateArticle($title, $content, $published_at)
 {
+    $errors = [];
 
-  $errors = [];
-
-  if ($title == '') {
-    $errors[] = 'Title is required';
-}
-if ($content == '') {
-    $errors[] = 'Content is required';
-}
-
-if ($level == '') {
-    $errors[] = 'Level is required';
-}
-
-if ($published_at != '') {
-    $date_time = date_create_from_format('Y-m-d H:i:s', $published_at);
-
-    if ($date_time === false) {
-        $errors[] = 'Invalid date and time';
-    } else {
-
-       $date_errors = date_get_last_errors();
-
-       if ($date_errors != false) {
-        $errors[] = 'Invalid date and time';
-       }
+    if ($title == '') {
+        $errors[] = 'Title is required';
     }
-}
-return  $errors;
+    if ($content == '') {
+        $errors[] = 'Content is required';
+    }
+
+    if ($published_at != '') {
+        $date_time = date_create_from_format('Y-m-d H:i:s', $published_at);
+
+        if ($date_time === false) {
+
+            $errors[] = 'Invalid date and time';
+
+        } else {
+
+            $date_errors = date_get_last_errors();
+
+            if ($date_errors['warning_count'] > 0) {
+                $errors[] = 'Invalid date and time';
+            }
+        }
+    }
+
+    return $errors;
 }
