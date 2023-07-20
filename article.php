@@ -1,42 +1,34 @@
 <?php
 
 require 'includes/database.php';
+require 'includes/article.php';
+
 
 $conn = getDB();
 
-if (isset($_GET['id']) && is_numeric($_GET['id'])) {        //zabezpieczenie przed wstrzykiwaniem SQL
+if (isset($_GET['id']) ) {
 
+    $article = getArticle($conn, $_GET['id']);
 
-$sql = "SELECT *
-        FROM article
-        WHERE id = " . $_GET['id'];
-
-$results = mysqli_query($conn, $sql);
-
-if ($results === false) {
-    echo mysqli_error($conn);
 } else {
-    $article = mysqli_fetch_assoc($results);
-}
-}
-else {
     $article = null;
 }
 
-
 ?>
-<?php require 'includes/header.php';?>
+<?php require 'includes/header.php'; ?>
 
-        <?php if ($article === null): //Aby sprawdzic, czy warunek dziala, wystarczy w $sql dac warunek WHERE id = 0?>
-            <p>Article not found.</p>
-        <?php else: ?>
-            <article>
-                <h2><?= htmlspecialchars($article['title']); ?></h2>
-                <p><?= htmlspecialchars($article['content']); ?></p>
-            </article>
-                    </li>
+<?php if ($article === null): ?>
+    <p>Article not found.</p>
+<?php else: ?>
 
-        <?php endif; ?>
+    <article>
+        <h2><?= htmlspecialchars($article['title']); ?></h2>
+        <p><?= htmlspecialchars($article['content']); ?></p>
 
-        <?php require 'includes/footer.php';?>
+    </article>
 
+    <a href="edit-article.php?id=<?= $article['id']; ?>">Edit</a>
+
+<?php endif; ?>
+
+<?php require 'includes/footer.php'; ?>

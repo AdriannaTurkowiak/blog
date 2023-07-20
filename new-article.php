@@ -1,8 +1,10 @@
 <?php
 
 require 'includes/database.php';
+require 'includes/article.php';
+require 'includes/url.php';
 
-$errors = [];
+
 $title = '';
 $content = '';
 $level = '';
@@ -15,30 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $level = $_POST['level'];
     $published_at = $_POST['published_at'];
 
-    if ($title == '') {
-        $errors[] = 'Title is required';
-    }
-    if ($content == '') {
-        $errors[] = 'Content is required';
-    }
-    if ($level == '') {
-        $errors[] = 'Level is required';
-    }
-    if ($published_at != '') {
-        $date_time = date_create_from_format('Y-m-d H:i:s', $published_at);
-
-        if ($date_time === false) {
-            $errors[] = 'Invalid date and time';
-        } else {
-            $date_errors = date_get_last_errors();
-
-            if ($date_errors['warning_count'] > 0) {
-                $errors[] = 'Invalid date and time';
-            }
-        }
-    }
-
-
+    $errors = validateArticle($title, $content, $level, $published_at);
 
     if (empty($errors)) {
 
@@ -57,20 +36,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($published_at == '') {
                 $published_at = null;
             }
+
             mysqli_stmt_bind_param($stmt, "ssss", $title, $content, $level, $published_at);
 
             if (mysqli_stmt_execute($stmt)) {
 
                 $id = mysqli_insert_id($conn);
 
-                if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
-                    $protocol = 'https';
-                } else {
-                    $protocol = 'http';
-                }
-
-                header("Location: $protocol://" . $_SERVER['HTTP_HOST'] . "/article.php?id=$id");
-                exit;
+                redirect("/article.php?id=$id");
 
             } else {
 
@@ -78,6 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             }
         }
+
     }
 }
 
@@ -86,40 +60,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <h2>New article</h2>
 
-<?php if (! empty($errors)) : ?>
-    <ul>
-        <?php foreach ($errors as $error) : ?>
-            <li><?= $error ?></li>
-        <?php endforeach; ?>
-    </ul>
-<?php endif; ?>
-
-<form method="post">
-
-    <div>
-        <label for="title">Title</label>
-        <input name="title" id="title" placeholder="Article title" value="<?= htmlspecialchars($title); ?>">
-    </div>
-
-    <div>
-        <label for="content">Content</label>
-        <textarea name="content" rows="4" cols="40" id="content"
-                  placeholder="Article content"><?= htmlspecialchars($content); ?></textarea>
-    </div>
-
-    <div>
-        <label for="level">Level</label>
-        <input name="level" id="level" placeholder="SP or LO"value="<?= htmlspecialchars($level); ?>">
-    </div>
-
-    <div>
-        <label for="published_at">Publication date and time</label>
-        <input type="datetime-local" name="published_at" id="published_at"
-               value="<?= htmlspecialchars($published_at); ?>">
-    </div>
-
-    <button>Add</button>
-
-</form>
+<?php require 'includes/article-form.php'; ?>
 
 <?php require 'includes/footer.php'; ?>
