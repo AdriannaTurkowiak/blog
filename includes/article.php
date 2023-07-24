@@ -41,10 +41,11 @@ function getArticle($conn, $id, $columns = '*')
  * @param string $title Title, required
  * @param string $content Content, required
  * @param string $published_at Published date and time, yyyy-mm-dd hh:mm:ss if not blank
- *
+ * @param string $level Level of the article
+
  * @return array An array of validation error messages
  */
-function validateArticle($title, $content, $published_at)
+function validateArticle($title, $content, $level, $published_at)
 {
     $errors = [];
 
