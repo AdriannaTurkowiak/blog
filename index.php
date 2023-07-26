@@ -1,6 +1,7 @@
 <?php
 
 require 'includes/database.php';
+session_start();
 
 $conn = getDB();
 
@@ -20,7 +21,15 @@ if ($results === false) {
 
 <?php require 'includes/header.php'; ?>
 
-<a href="new-article.php">New article</a>
+<?php if(isset($_SESSION['is_logged']) && ($_SESSION['is_logged'])): ?>
+    <p> Jesteś zalogowany <a href="logout.php">Wyloguj</a></p>
+    <a href="new-article.php">New article</a>
+
+
+<?php else: ?>
+    <p> Nie jesteś zalogowany <a href="login.php">Zaloguj</a></p>
+    <?php endif; ?>
+
 
 
         <?php if (empty($articles)): //Aby sprawdzic, czy warunek dziala, wystarczy w $sql dac warunek WHERE id = 0?>
