@@ -1,6 +1,7 @@
 <?php
 
 require 'includes/database.php';
+session_start();
 
 $conn = getDB();
 
@@ -19,6 +20,13 @@ if ($results === false) {
 ?>
 
 <?php require 'includes/header.php'; ?>
+
+<?php if(isset($_SESSION['is_logged']) && ($_SESSION['is_logged'])): ?>
+    <p> Jesteś zalogowany <a href="logout.php">Wyloguj</a></p>
+
+<?php else: ?>
+    <p> Nie jesteś zalogowany <a href="login.php">Zaloguj</a></p>
+    <?php endif; ?>
 
 <a href="new-article.php">New article</a>
 
